@@ -1,0 +1,35 @@
+# -------- BUILD STAGE --------
+FROM node:20 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# -------- PRODUCTION STAGE --------
+FROM node:20-slim
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production
+
+COPY package*.json .npmrc* ./
+
+# Install only production dependencies
+RUN npm install --omit=dev
+
+# Copy compiled code
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/.sequelizerc* ./
+
+# Security: run as non-root user
+USER node
+
+EXPOSE 3007
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3007/health', (res) => res.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1))"
+
+CMD ["sh", "-c", "npx sequelize-cli db:migrate && node dist/server.js"]
