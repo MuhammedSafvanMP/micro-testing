@@ -36,7 +36,7 @@ jobs:
         run: |
           aws ecs update-service \
             --cluster hosta-user \
-            --service user-service \
+            --service hosta-user-task-service-v7g9z29n \
             --force-new-deployment
 
   deploy-booking:
