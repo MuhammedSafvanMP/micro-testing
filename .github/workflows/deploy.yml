@@ -1,14 +1,13 @@
-name: Deploy User Service
+name: Deploy All Microservices
 
 on:
   push:
-    paths:
-      - 'user-service/**'
+    branches:
+      - main
 
 jobs:
-  deploy:
+  deploy-user:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -17,20 +16,91 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ap-south-1
+          aws-region: eu-north-1
 
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build & Push
+      - name: Build & Push User Service
         run: |
           docker build -t user-service ./user-service
           docker tag user-service:latest ${{ secrets.ECR_URI_USER }}/hosta-user-service:latest
           docker push ${{ secrets.ECR_URI_USER }}/hosta-user-service:latest
 
-      - name: Deploy ECS
+      - name: Setup Environment
+        run: |
+          touch .env
+          echo "${{ secrets.USER_ENV }}" > .env
+
+      - name: Deploy User Service
         run: |
           aws ecs update-service \
             --cluster hosta-cluster \
             --service user-service \
+            --force-new-deployment
+
+  deploy-booking:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: eu-north-1
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build & Push Booking Service
+        run: |
+          docker build -t booking-service ./booking-service
+          docker tag booking-service:latest ${{ secrets.ECR_URI_BOOKING }}/hosta-booking-service:latest
+          docker push ${{ secrets.ECR_URI_BOOKING }}/hosta-booking-service:latest
+
+      - name: Setup Environment
+        run: |
+          touch .env
+          echo "${{ secrets.BOOKING_ENV }}" > .env
+
+      - name: Deploy Booking Service
+        run: |
+          aws ecs update-service \
+            --cluster hosta-cluster \
+            --service booking-service \
+            --force-new-deployment
+
+  deploy-ambulance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: eu-north-1
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build & Push Ambulance Service
+        run: |
+          docker build -t ambulance-service ./ambulance-service
+          docker tag ambulance-service:latest ${{ secrets.ECR_URI_AMBULANCE }}/hosta-ambulance-service:latest
+          docker push ${{ secrets.ECR_URI_AMBULANCE }}/hosta-ambulance-service:latest
+
+      - name: Setup Environment
+        run: |
+          touch .env
+          echo "${{ secrets.AMBULANCE_ENV }}" > .env
+
+      - name: Deploy Ambulance Service
+        run: |
+          aws ecs update-service \
+            --cluster hosta-cluster \
+            --service ambulance-service \
             --force-new-deployment
