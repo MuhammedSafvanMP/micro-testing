@@ -50,7 +50,7 @@ jobs:
         run: |
           aws ecs update-service \
             --cluster hosta-user \
-            --service hosta-user-task-service-v7g9z29n \
+            --service hosta-user-task-service \
             --force-new-deployment
 
   # =========================
