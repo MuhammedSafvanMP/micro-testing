@@ -35,7 +35,7 @@ jobs:
       - name: Deploy User Service
         run: |
           aws ecs update-service \
-            --cluster hosta-cluster \
+            --cluster hosta-user \
             --service user-service \
             --force-new-deployment
 
