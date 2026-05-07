@@ -25,8 +25,8 @@ jobs:
       - name: Build & Push
         run: |
           docker build -t user-service ./user-service
-          docker tag user-service:latest ${{ secrets.ECR_URI_USER }}/user-service
-          docker push ${{ secrets.ECR_URI_USER }}/user-service
+          docker tag user-service:latest ${{ secrets.ECR_URI_USER }}/hosta-user-service:latest
+          docker push ${{ secrets.ECR_URI_USER }}/hosta-user-service:latest
 
       - name: Deploy ECS
         run: |
