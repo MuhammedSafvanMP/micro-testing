@@ -13,9 +13,9 @@ const startServer = async () => {
         await connectRabbitMQ();
         
         // Starting user Service
-        const server = app.listen(PORT, () => {
-            logger.info(`🚀 User Service is running on port ${PORT}`);
-        });
+       const server = app.listen(Number(PORT), "0.0.0.0", () => {
+  logger.info(`🚀 User Service is running on port ${PORT}`);
+});
 
         // Graceful Shutdown Handler
         process.on("SIGTERM", () => {
